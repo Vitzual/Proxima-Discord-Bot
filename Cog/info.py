@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands, tasks
 
+
 class Info(commands.Cog, name="Info"):
     """Informative commands"""
     def __init__(self, bot):
@@ -23,6 +24,7 @@ class Info(commands.Cog, name="Info"):
         """Displays link to bots github"""
         embed = discord.Embed(title="Bot code", url="https://github.com/Vitzual/proxima-bot", description="You can check out my code, it's open source!", color=discord.Color.blue())
         await ctx.send(embed=embed)
+
 
 def setup(bot):
     bot.add_cog(Info(bot))

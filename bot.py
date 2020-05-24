@@ -20,15 +20,17 @@ print("Import successful!")
 # Sets description, bot prefix, token, and commands
 description = '''Proxima Studios bot, by Vitzual'''
 bot = commands.Bot(command_prefix='-', description=description)
-TOKEN = "HIDDEN" # You can replace this with your own bot token, but remove it before making a commit
+TOKEN = "Njk4OTM5MDMxMTQ4Mjk4MjQ5.XqrAmg.bWEQuYPck7xpfjNkWVc3Kj0Gvag"  # You can replace this with your own bot token, but remove it before making a commit
 startup_extensions = ["Cog.admin", "Cog.developer", "Cog.help", "Cog.math", "Cog.info"]
 
 # Sync with client
 print("Syncing with client ID...")
+
+
 @bot.event
 async def on_ready():
     print("Sync successful!")
-    print("Running discord branch version",discord.__version__,"(rewrite)")
+    print("Running discord branch version", discord.__version__, "(rewrite)")
 client = discord.Client()
 
 # Load cogs command files
@@ -43,13 +45,14 @@ if __name__ == "__main__":  # When script is loaded, this will run
             exc = '{}: {}'.format(type(e).__name__, e)
             print('Failed to load extension {}\n{}'.format(extension, exc))  # Failed to load cog, with error
 
+
 # Welcome event
 @bot.event
 async def on_member_join(member):
     role = get(member.server.roles, name='Community')
     join_channel = client.get_channel(713248523281498273)
     server_embed = discord.Embed(title=f"{member.display_name} has joined the discord!", description=f"Welcome {member.mention} to Proxima Studios! ", color=discord.Color.blue())
-    await client.add_roles(member, role)
+    await member.add_roles(role)
     await join_channel.send(embed=server_embed)
 
 

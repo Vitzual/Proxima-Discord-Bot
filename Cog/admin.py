@@ -3,6 +3,7 @@ import asyncio
 from discord.ext import commands, tasks
 from discord.ext.commands import Bot
 
+
 class Admin(commands.Cog, name="Admin"):
     """Administrative commands"""
     def __init__(self, bot):
@@ -17,11 +18,13 @@ class Admin(commands.Cog, name="Admin"):
 
     @commands.has_role("Proxima Team")
     @commands.command()
-    async def reload(self, ctx, module : str):
+    async def reload(self, ctx, module: str):
         """Reloads a module."""
         try:
-            self.bot.unload_extension(module)
-            self.bot.load_extension(module)
+            if module.startswith("Cog."):
+                self.bot.reload_extension(module)
+            else:
+                self.bot.reload_extension(f"Cog.{module}")
         except Exception as e:
             print(e)
             print()
@@ -32,13 +35,13 @@ class Admin(commands.Cog, name="Admin"):
             await ctx.send(embed=embed)
 
     @commands.has_role("Proxima Team")
-    @commands.command(pass_context = True)
-    async def clear(self, ctx, number):
+    @commands.command(pass_context=True)
+    async def clear(self, ctx, number: int):
         mgs = []
-        number = int(number)
-        async for x in commands.logs_from(ctx.message.channel, limit = number):
+        async for x in ctx.channel.history(limit=number+1):
             mgs.append(x)
-        await commands.delete_messages(mgs)
+        await ctx.channel.delete_messages(mgs)
+
 
 def setup(bot):
     bot.add_cog(Admin(bot))
