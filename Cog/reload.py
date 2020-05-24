@@ -17,6 +17,24 @@ class Admin(commands.Cog, name="Admin"):
         await ctx.send(embed=embed)
 
     @commands.has_role("Proxima Team")
+    @commands.command()
+    async def reload(self, ctx, module: str):
+        """Reloads a module."""
+        try:
+            if module.startswith("Cog."):
+                self.bot.reload_extension(module)
+            else:
+                self.bot.reload_extension(f"Cog.{module}")
+        except Exception as e:
+            print(e)
+            print()
+            embed = discord.Embed(title="Module error", description="Oops! That module doesn't exist.", color=discord.Color.red())
+            await ctx.send(embed=embed)
+        else:
+            embed = discord.Embed(title="Module reloaded", description="The module was reloaded successfully", color=discord.Color.blue())
+            await ctx.send(embed=embed)
+
+    @commands.has_role("Proxima Team")
     @commands.command(pass_context=True)
     async def clear(self, ctx, number: int):
         mgs = []
