@@ -6,7 +6,7 @@ find here for your own projects.
 To contribute to the bot, do the following...
 
 1. Create a fork of the repository
-2. Add / chance in the fork you created
+2. Add / make changes in the fork you created
 3. Submit the changes through a pull request
 
 All pull requests will be reviewed before being accepted, and it is highly recommended that you check in
