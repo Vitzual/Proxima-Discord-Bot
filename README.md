@@ -17,4 +17,4 @@ Some features of the bot aren't open source, these include...
 - The bot token
 - User / project databases
 
-If you have any further questions, feel free to let me know.
+If you have any further questions, dm me on discord.
