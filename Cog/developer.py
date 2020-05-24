@@ -73,7 +73,7 @@ class Developer(commands.Cog, name="Developer"):
     async def finish(self, ctx, project):
         """Finishes a project"""
         def check(m):
-            return m.author == ctx.author and m.channel == channel
+            return m.author == ctx.author
         guild = ctx.guild
         username = ctx.author.display_name
         username = username + "'s Projects"
@@ -85,15 +85,29 @@ class Developer(commands.Cog, name="Developer"):
         else:
             for scan in category.channels:
                 if scan.name == project:
+                    channel = scan
                     found = True
-                    embed = discord.Embed(title="Confirmation", description="Please type `confirm` to finish the project.", color=discord.Color.blue())
+                    embed = discord.Embed(title="Confirmation", description="Please type `confirm` to finish the project.\n\n**What this does:**\n\t- Deletes the project in your category\n\t- Adds project to completion board", color=discord.Color.blue())
                     await ctx.send(embed=embed)
                     msg = await self.bot.wait_for('message', check=check)
                     if msg.content.lower() == "confirm": 
-                        embed = discord.Embed(title="Project complete!", description="Woot woot! Congratulations on finishing\nyour project! Head over to the\marketplace and post it for other\nto download and tryout.", color=discord.Color.blue())
+                        embed = discord.Embed(title="Project complete!", description="Congratulations on finishing your project!\n\n**Now what?**\n\t- Upload to the marketplace\n\t- Share it with others\n\t- Get engaged with your audience!", color=discord.Color.blue())
                         await ctx.send(embed=embed)
+                        embed = discord.Embed(title="Warning!", description="This channel will be deleted in 1 minute!", color=discord.Color.red())
+                        await channel.send(embed=embed)
+                        await asyncio.sleep(30)
+                        embed = discord.Embed(title="Warning!", description="This channel will be deleted in 30 seconds!", color=discord.Color.red())
+                        await channel.send(embed=embed)
+                        await asyncio.sleep(15)
+                        embed = discord.Embed(title="Warning!", description="This channel will be deleted in 15 seconds!", color=discord.Color.red())
+                        await channel.send(embed=embed)
+                        await asyncio.sleep(10)
+                        embed = discord.Embed(title="Warning!", description="This channel will be deleted in 5 seconds!", color=discord.Color.red())
+                        await channel.send(embed=embed)
+                        await asyncio.sleep(5)
+                        await channel.delete()
                     else:
-                        embed = discord.Embed(title="Confirmation failed!", description="You did not confirm.", color=discord.Color.red())
+                        embed = discord.Embed(title="Confirmation failed!", description="You did not confirm correctly!", color=discord.Color.red())
                         await ctx.send(embed=embed)
             if found is False:
                 embed = discord.Embed(title="Whoops!", description="You don't have a project with that name!", color=discord.Color.red())
