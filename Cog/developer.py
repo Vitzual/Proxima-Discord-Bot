@@ -112,6 +112,7 @@ class Developer(commands.Cog, name="Developer"):
             if found is False:
                 embed = discord.Embed(title="Whoops!", description="You don't have a project with that name!", color=discord.Color.red())
                 await ctx.send(embed=embed)
-        
+
+
 def setup(bot):
     bot.add_cog(Developer(bot))
