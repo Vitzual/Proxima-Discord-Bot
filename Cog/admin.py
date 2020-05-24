@@ -19,6 +19,7 @@ class Admin(commands.Cog, name="Admin"):
     @commands.has_role("Proxima Team")
     @commands.command(pass_context=True)
     async def clear(self, ctx, number: int):
+        """Clears x amount of messages"""
         mgs = []
         async for x in ctx.channel.history(limit=number+1):
             mgs.append(x)
