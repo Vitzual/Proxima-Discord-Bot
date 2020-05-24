@@ -7,6 +7,7 @@ class Developer(commands.Cog, name="Developer"):
     """Developer commands"""
     def __init__(self, bot):
         self.bot = bot
+    client = discord.Client()
 
     @commands.has_role("Developer")
     @commands.command()
@@ -60,14 +61,43 @@ class Developer(commands.Cog, name="Developer"):
         else:
             embed = discord.Embed(title="Starting a search", description=f"Ready to start searching? Here's how\n"
                                                     f"to start an active search...\n"
-                                                    f"\n`-search [Role] [Desc]`\n"
+                                                    f"\n`-search [Role]`\n"
                                                     f"\n`[Role]` **The role you're looking for**"
                                                     f"\nValid roles are developer, designer,\ncomposer, and tester.\n"
-                                                    f"\n`[Desc]` **Description of the project**"
-                                                    f"\nIt is recommended you also include\nwhat you're looking for from the role\nyou selected in the first argument.\n"
+                                                    f"\n**Remember** Set a description before\nstarting an active search with `-desc`\nso people know what the project is!"
                                                     ,color=discord.Color.blue())
             await ctx.send(embed=embed)
 
+    @commands.has_role("Developer")
+    @commands.command()
+    async def finish(self, ctx, project):
+        """Finishes a project"""
+        def check(m):
+            return m.author == ctx.author and m.channel == channel
+        guild = ctx.guild
+        username = ctx.author.display_name
+        username = username + "'s Projects"
+        category = get(ctx.guild.categories, name=username)
+        found = False
+        if category is None:
+            embed = discord.Embed(title="Whoops!", description="You don't have any active projects!", color=discord.Color.red())
+            await ctx.send(embed=embed)
+        else:
+            for scan in category.channels:
+                if scan.name == project:
+                    found = True
+                    embed = discord.Embed(title="Confirmation", description="Please type `confirm` to finish the project.", color=discord.Color.blue())
+                    await ctx.send(embed=embed)
+                    msg = await self.bot.wait_for('message', check=check)
+                    if msg.content.lower() == "confirm": 
+                        embed = discord.Embed(title="Project complete!", description="Woot woot! Congratulations on finishing\nyour project! Head over to the\marketplace and post it for other\nto download and tryout.", color=discord.Color.blue())
+                        await ctx.send(embed=embed)
+                    else:
+                        embed = discord.Embed(title="Confirmation failed!", description="You did not confirm.", color=discord.Color.red())
+                        await ctx.send(embed=embed)
+            if found is False:
+                embed = discord.Embed(title="Whoops!", description="You don't have a project with that name!", color=discord.Color.red())
+                await ctx.send(embed=embed)
         
 def setup(bot):
     bot.add_cog(Developer(bot))
