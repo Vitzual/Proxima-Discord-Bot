@@ -20,7 +20,7 @@ print("Import successful!")
 # Sets description, bot prefix, token, and commands
 description = '''Proxima Studios bot, by Vitzual'''
 bot = commands.Bot(command_prefix='-', description=description)
-TOKEN = "Njk4OTM5MDMxMTQ4Mjk4MjQ5.XqrAmg.bWEQuYPck7xpfjNkWVc3Kj0Gvag"  # You can replace this with your own bot token, but remove it before making a commit
+TOKEN = "YOUR_TOKEN"  # You can replace this with your own bot token, but remove it before making a commit
 startup_extensions = ["Cog.admin", "Cog.developer", "Cog.help", "Cog.math", "Cog.info"]
 
 # Sync with client
