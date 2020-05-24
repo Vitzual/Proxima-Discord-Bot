@@ -47,7 +47,7 @@ if __name__ == "__main__":  # When script is loaded, this will run
 @bot.event
 async def on_member_join(member):
     role = get(member.server.roles, name='Community')
-    join_channel = client.get_channel(713248523281498273)
+    join_channel = client.get_channel(713979112213053442)
     server_embed = discord.Embed(title=f"{member.display_name} has joined the discord!",
                                  description=f"Welcome {member.mention} to Proxima Studios! ",
                                  color=discord.Color.blue())
