@@ -73,7 +73,7 @@ class Developer(commands.Cog, name="Developer"):
     async def finish(self, ctx, project):
         """Finishes a project"""
         def check(m):
-            return m.author == ctx.author and m.channel == channel
+            return m.author == ctx.author
         guild = ctx.guild
         username = ctx.author.display_name
         username = username + "'s Projects"
