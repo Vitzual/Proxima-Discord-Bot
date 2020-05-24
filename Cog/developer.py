@@ -111,6 +111,9 @@ class Developer(commands.Cog, name="Developer"):
                         await channel.send(embed=embed)
                         await asyncio.sleep(5)
                         await channel.delete()
+                        category = get(ctx.guild.categories, name=username)
+                        if len(category.channels) == 1:
+                            await category.delete()
                     else:
                         embed = discord.Embed(title="Confirmation failed!", description="You did not confirm correctly!", color=discord.Color.red())
                         await ctx.send(embed=embed)
