@@ -90,20 +90,17 @@ async def on_command_error(ctx, error):
 
     # Command cooldown error
     if isinstance(error, commands.CommandOnCooldown):
-        embed = discord.Embed(title=f"{ctx.command} error",
-                              description=f"This command is on cooldown, please try again in "
-                                          f"{format(math.ceil(error.retry_after))}s",
+        embed = discord.Embed(title=f"Cooldown error",
+                              description=f"Oops! Looks like that command is on cooldown.\n**Time left:** {format(math.ceil(error.retry_after))}s",
                               color=discord.Color.red())
-        embed.set_footer(text=f"{error}")
         await ctx.send(embed=embed)
         return
 
     # Lacking role error
     if isinstance(error, commands.CheckFailure):
-        embed = discord.Embed(title=f"{ctx.command} error",
-                              description=f"You do not have permission to use this command",
+        embed = discord.Embed(title=f"Permission error",
+                              description=f"{error}",
                               color=discord.Color.red())
-        embed.set_footer(text=f"{error}")
         await ctx.send(embed=embed)
         return
 
