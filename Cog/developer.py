@@ -16,14 +16,22 @@ class Developer(commands.Cog, name="Developer"):
     async def create(self, ctx, name):
         """Creates a new project in the discord"""
 
-        # Default values for creation tool
-        # You can change these for your own projects if you wish to
+
+        ###########################################
+        ############## CONFIGURATION ##############
+        ###########################################
+        # You can change these for your own project
         ADMIN_ROLE = "Proxima Team"
         MAX_CHANNELS = 3
         MAX_CHANNELS_CHECK = True
         DUPLICATE_NAME_CHECK = True
         PROFANITY_CHECK = True
-        BLACKLIST_WORDS = ["none"] # Words hidden for GitHub, add your own words here.
+        BLACKLIST_WORDS = ["fuck", "shit", "cunt", 
+                        "nigger", "niger", "niqqa", 
+                        "bitch", "pussy", "penis", 
+                        "dick", "boobs", "tits", 
+                        "vagina", "ass", "retard"]
+        ###########################################
 
         # Grabs guild, member, username, and admin role and then sets permissions for new project channels
         guild = ctx.guild
@@ -100,10 +108,23 @@ class Developer(commands.Cog, name="Developer"):
                                                     ,color=discord.Color.blue())
             await ctx.send(embed=embed)
 
+    # Command "-finish [Name]", can only be used by users with the role "Developer"
     @commands.has_role("Developer")
     @commands.command()
     async def finish(self, ctx, project):
         """Finishes a project"""
+
+        ###########################################
+        ############## CONFIGURATION ##############
+        ###########################################
+        # You can change these for your own project
+        CONFIRMATION_WORD = "confirm" 
+        CONFIRMATION_PROMPT = True 
+        PROJECT_DELETE_COUNTDOWN = True
+        COUNTDOWN_TIME = 60
+        ###########################################
+
+        # Creates confirmation check to ensure confirmation comes from project owner
         def check(m):
             return m.author == ctx.author
         guild = ctx.guild
@@ -111,6 +132,8 @@ class Developer(commands.Cog, name="Developer"):
         username = username + "'s Projects"
         category = get(ctx.guild.categories, name=username)
         found = False
+        confirmation_passed = True
+        # Active project check (REQUIRED! Removing this check will cause errors!)
         if category is None:
             embed = discord.Embed(title="Whoops!", description="You don't have any active projects!", color=discord.Color.red())
             await ctx.send(embed=embed)
@@ -119,15 +142,27 @@ class Developer(commands.Cog, name="Developer"):
                 if scan.name == project:
                     channel = scan
                     found = True
-                    embed = discord.Embed(title="Confirmation", description="Please type `confirm` to finish the project.\n\n**What this does:**\n\t- Deletes the project in your category\n\t- Adds project to completion board", color=discord.Color.blue())
-                    await ctx.send(embed=embed)
-                    msg = await self.bot.wait_for('message', check=check)
-                    if msg.content.lower() == "confirm": 
-                        embed = discord.Embed(title=":confetti_ball: Project complete! :confetti_ball:", description="Congratulations on finishing your project!\n\n**Now what?**\n\t- Upload to the marketplace\n\t- Share it with others\n\t- Get engaged with your audience!", color=discord.Color.blue())
+                    # Prompts user with confirmation if enabled
+                    if CONFIRMATION_PROMPT is True:
+                        confirmation_passed = False
+                        embed = discord.Embed(title="Confirmation", description="Please type `confirm` to finish the project.\n\n**What this does:**\n\t- Deletes the project in your category\n\t- Adds project to completion board", color=discord.Color.blue())
                         await ctx.send(embed=embed)
-                        embed = discord.Embed(title="Warning!", description="This channel will be deleted in 1 minute!", color=discord.Color.red())
+                        msg = await self.bot.wait_for('message', check=check)
+                        if msg.content.lower() == CONFIRMATION_WORD: 
+                            confirmation_passed = True
+                        else:
+                            embed = discord.Embed(title="Confirmation failed!", description="You did not confirm correctly!", color=discord.Color.red())
+                            await ctx.send(embed=embed)
+                    # Checks set countdown time, this check must be done
+                    if COUNTDOWN_TIME < 60 and PROJECT_DELETE_COUNTDOWN is True:
+                        embed = discord.Embed(title="WARNING", description=f"**Invalid countdown time set!**\nIt looks like this value was changed.\n\n**Time entered:** {COUNTDOWN_TIME} seconds\n**Error:** Value must be greater then 60\n\n*Revert this change, and then reload the module.*", color=discord.Color.red())
+                        await ctx.send(embed=embed)
+                    # Prompts user with countdown if enabled
+                    elif PROJECT_DELETE_COUNTDOWN is True:
+                        await ctx.send(embed=embed)
+                        embed = discord.Embed(title="Warning!", description=f"This channel will be deleted in {COUNTDOWN_TIME} seconds!", color=discord.Color.red())
                         await channel.send(embed=embed)
-                        await asyncio.sleep(30)
+                        await asyncio.sleep(COUNTDOWN_TIME-30)
                         embed = discord.Embed(title="Warning!", description="This channel will be deleted in 30 seconds!", color=discord.Color.red())
                         await channel.send(embed=embed)
                         await asyncio.sleep(15)
@@ -137,13 +172,13 @@ class Developer(commands.Cog, name="Developer"):
                         embed = discord.Embed(title="Warning!", description="This channel will be deleted in 5 seconds!", color=discord.Color.red())
                         await channel.send(embed=embed)
                         await asyncio.sleep(5)
-                        await channel.delete()
+                    if confirmation_passed is True:
+                        embed = discord.Embed(title=":confetti_ball: Project complete! :confetti_ball:", description="Congratulations on finishing your project!\n\n**Now what?**\n\t- Upload to the marketplace\n\t- Share it with others\n\t- Get engaged with your audience!", color=discord.Color.blue())
+                        await ctx.send(embed=embed)
                         category = get(ctx.guild.categories, name=username)
+                        await channel.delete()
                         if len(category.channels) == 1:
                             await category.delete()
-                    else:
-                        embed = discord.Embed(title="Confirmation failed!", description="You did not confirm correctly!", color=discord.Color.red())
-                        await ctx.send(embed=embed)
             if found is False:
                 embed = discord.Embed(title="Whoops!", description="You don't have a project with that name!", color=discord.Color.red())
                 await ctx.send(embed=embed)
