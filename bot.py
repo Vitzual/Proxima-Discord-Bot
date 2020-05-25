@@ -42,17 +42,27 @@ if __name__ == "__main__":  # When script is loaded, this will run
             exc = '{}: {}'.format(type(e).__name__, e)
             print('Failed to load extension {}\n{}'.format(extension, exc))  # Failed to load cog, with error
 
-
 # Welcome event
 @bot.event
 async def on_member_join(member):
-    await member.add_roles(get(member.guild.roles, name="Community"))
-    category = get(member.guild.categories, name="Proxima Overview")
+
+    ###########################################
+    ############## CONFIGURATION ##############
+    ###########################################
+    WELCOME_MESSAGE = f"{member.display_name} has joined the discord!"
+    WELCOME_DESCRIPTION = f"Welcome {member.mention} to Proxima Studios!\n\n**Getting started:**\n- Talk with devs from different projects\n- Get support for numerous projects\n- Join the team! Use `-info` for more info"
+    DEFAULT_ROLE = "Community"
+    WELCOME_CHANNEL_CATEGORY = "Proxima Overview"
+    WELCOME_CHANNEL_NAME = "welcome"
+    ###########################################
+
+    await member.add_roles(get(member.guild.roles, name=DEFAULT_ROLE))
+    category = get(member.guild.categories, name=WELCOME_CHANNEL_CATEGORY)
     for scan in category.channels:
-        if scan.name == "welcome":
+        if scan.name == WELCOME_CHANNEL_NAME:
             join_channel = scan
-    server_embed = discord.Embed(title=f"{member.display_name} has joined the discord!",
-                                 description=f"Welcome {member.mention} to Proxima Studios!\n\n**Getting started:**\n- Talk with devs from different projects\n- Get support for numerous projects\n- Join the team! Use `-info` for more info",
+    server_embed = discord.Embed(title=WELCOME_MESSAGE,
+                                 description=WELCOME_DESCRIPTION,
                                  color=discord.Color.blue())
     await join_channel.send(embed=server_embed)
 
