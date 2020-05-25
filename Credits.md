@@ -5,3 +5,4 @@
 4. Fixed issues with the -create command
 5. Fixed wait_for
 6. Added error handling
+7. Added toggling

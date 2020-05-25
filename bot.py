@@ -4,9 +4,9 @@ from discord.utils import get
 
 # Developed by Vitzual
 # Version 1.0.1
-print("###############################")
+print("#####################################")
 print("####### Proxima | By Vitzual ########")
-print("###############################")
+print("#####################################")
 
 # Integrate required imports
 print("Importing packages...")
