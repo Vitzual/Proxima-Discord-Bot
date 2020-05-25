@@ -20,10 +20,19 @@ class Admin(commands.Cog, name="Admin"):
     @commands.command(pass_context=True)
     async def clear(self, ctx, number: int):
         """Clears x amount of messages"""
-        mgs = []
-        async for x in ctx.channel.history(limit=number+1):
-            mgs.append(x)
-        await ctx.channel.delete_messages(mgs)
+        if number > 99:
+            embed = discord.Embed(title="Oops!", description="A maximum of 99 messages can be cleared.", color=discord.Color.red())
+            await ctx.send(embed=embed)
+        elif number < 1:
+            embed = discord.Embed(title="Oops!", description="A minimum of 1 message is needed", color=discord.Color.red())
+            await ctx.send(embed=embed)
+        else:
+            mgs = []
+            async for x in ctx.channel.history(limit=number+1):
+                mgs.append(x)
+            await ctx.channel.delete_messages(mgs)
+            embed = discord.Embed(title="Messages cleared!", description=f"Wiped {number} messages from this channel", color=discord.Color.blue())
+            await ctx.send(embed=embed)
 
 
 def setup(bot):
