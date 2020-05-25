@@ -1,3 +1,4 @@
+# Import necessary library functions
 import discord
 import asyncio
 from discord.ext import commands, tasks
@@ -9,14 +10,28 @@ class Developer(commands.Cog, name="Developer"):
         self.bot = bot
     client = discord.Client()
 
+    # Command "-create [Name]", can only be used by users with the role "Developer"
     @commands.has_role("Developer")
     @commands.command()
     async def create(self, ctx, name):
         """Creates a new project in the discord"""
+
+        # Default values for creation tool
+        # You can change these for your own projects if you wish to
+        ADMIN_ROLE = "Proxima Team"
+        MAX_CHANNELS = 3
+        MAX_CHANNELS_CHECK = True
+        DUPLICATE_NAME_CHECK = True
+        PROFANITY_CHECK = True
+        BLACKLIST_WORDS = ["fuck", "shit", "cunt", "nigger", "niger", 
+                        "niqqa", "bitch", "pussy", "penis", "dick", 
+                        "boobs", "tits", "vagina", "ass", "retard"]
+
+        # Grabs guild, member, username, and admin role and then sets permissions for new project channels
         guild = ctx.guild
         member = ctx.author
         username = ctx.message.author.name
-        admin_role = get(guild.roles, name="Proxima Team")
+        admin_role = get(guild.roles, name=ADMIN_ROLE)
         overwrites = {
             guild.default_role: discord.PermissionOverwrite(read_messages=False),
             guild.me: discord.PermissionOverwrite(read_messages=True),
@@ -26,26 +41,31 @@ class Developer(commands.Cog, name="Developer"):
         username = username + "'s Projects"
         category = get(ctx.guild.categories, name=username)
         valid = True
-        if category is not None and len(category.channels) >= 3:
-            embed = discord.Embed(title="Slow down there cowboy!", description="You can only have 3 active projects at a time!", color=discord.Color.red())
+        # Checks to see if the user has surpassed the MAX_CHANNELS number
+        if MAX_CHANNELS_CHECK and category is not None and len(category.channels) >= MAX_CHANNELS:
+            embed = discord.Embed(title="Slow down there cowboy!", description=f"You can only have {MAX_CHANNELS} active projects at a time!", color=discord.Color.red())
             await ctx.send(embed=embed)
             valid = False
-        elif category is not None:
+        # Checks to see if the user already has a project with the same name
+        elif DUPLICATE_NAME_CHECK and category is not None:
             category = get(ctx.guild.categories, name=username)
             for scan in category.channels:
                 if scan.name == name:
                     embed = discord.Embed(title="Whoops!", description="You already have a project with that name!", color=discord.Color.red())
                     await ctx.send(embed=embed)
                     valid = False
-        blacklist_words = ["fuck", "shit", "cunt", "nigger", "niger", "niqqa", "bitch", "pussy", "penis", "dick", "boobs", "tits", "vagina", "ass", "retard"]
-        if name in blacklist_words:
+        # Checks to see if the project name contains profanity
+        if PROFANITY_CHECK and name.lower in BLACKLIST_WORDS:
             embed = discord.Embed(title="Woah there!", description="Your project contained profanity!\n\n**Reminder:**\n- No projects with vulgar names\n- Projects must be child friendly", color=discord.Color.red())
             await ctx.send(embed=embed)
             valid = False
+        # If all enabled checks are passed, begin creation
         if valid is True:
+            # If user has no projects, create the category first
             if category is None:
                 await ctx.guild.create_category(username)
             category = get(ctx.guild.categories, name=username)
+            # Create a new project channel under the users project category
             channel = await guild.create_text_channel(name, overwrites=overwrites, category=category)
             embed = discord.Embed(title="Success!", description="Your project is ready to go!", color=discord.Color.blue())
             print(username,"has created a new project with the name",name)
