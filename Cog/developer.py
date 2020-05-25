@@ -188,19 +188,19 @@ class Developer(commands.Cog, name="Developer"):
                                       color=discord.Color.red())
                 await ctx.send(embed=embed)
 
-    @commands.has_role("Verified Developer")
-    @commands.command()
-    async def desc(self, ctx, name, *, desc):
-        """This feature is still in development"""
-        guild = ctx.guild
-        username = ctx.message.author.name
-        username = username + "'s Projects"
-        category = get(ctx.guild.categories, name=username)
-        if category is None:
-            embed = discord.Embed(title="Whoops!",
-                                  description="You need to have an active project before setting a description!",
-                                  color=discord.Color.red())
-            await ctx.send(embed=embed)
+    # @commands.has_role("Verified Developer")
+    # @commands.command()
+    # async def desc(self, ctx, name, *, desc):
+    #     """This feature is still in development"""
+    #     guild = ctx.guild
+    #     username = ctx.message.author.name
+    #     username = username + "'s Projects"
+    #     category = get(ctx.guild.categories, name=username)
+    #     if category is None:
+    #         embed = discord.Embed(title="Whoops!",
+    #                               description="You need to have an active project before setting a description!",
+    #                               color=discord.Color.red())
+    #         await ctx.send(embed=embed)
 
     @commands.has_role("Verified Developer")
     @commands.command()
@@ -254,6 +254,17 @@ class Developer(commands.Cog, name="Developer"):
                                                                          f"\n**Remember** Set a description before\nstarting an active search with `-desc`\nso people know what the project is!"
                                   , color=discord.Color.blue())
             await ctx.send(embed=embed)
+
+    # @commands.has_role("Verified Developer")
+    @commands.has_permissions(manage_channels=True)
+    @commands.command()
+    async def desc(self, ctx, *, description: str):
+        """Changes the description of your channel. You must be in the channel"""
+        await ctx.channel.edit(topic=description)
+        embed = discord.Embed(title=f"Success!",
+                              description=f"{ctx.channel.name}'s topic is now: **{description}**",
+                              color=discord.Color.green())
+        await ctx.send(embed=embed)
 
 
 def setup(bot):
