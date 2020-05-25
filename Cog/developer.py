@@ -10,12 +10,11 @@ class Developer(commands.Cog, name="Developer"):
         self.bot = bot
     client = discord.Client()
 
-    # Command "-create [Name]", can only be used by users with the role "Developer"
-    @commands.has_role("Developer")
+    # Command "-create [Name]"
+    @commands.has_role("Verified Developer")
     @commands.command()
     async def create(self, ctx, name):
         """Creates a new project in the discord"""
-
 
         ###########################################
         ############## CONFIGURATION ##############
@@ -26,7 +25,7 @@ class Developer(commands.Cog, name="Developer"):
         MAX_CHANNELS_CHECK = True
         DUPLICATE_NAME_CHECK = True
         PROFANITY_CHECK = True
-        BLACKLIST_WORDS = ["example1","example2"]
+        BLACKLIST_WORDS = ["example1", "example2"]
         ###########################################
 
         # Grabs guild, member, username, and admin role and then sets permissions for new project channels
@@ -83,29 +82,8 @@ class Developer(commands.Cog, name="Developer"):
                                                                 ,color=discord.Color.blue())
             await channel.send(embed=embed)
 
-    @commands.has_role("Developer")
-    @commands.command()
-    async def search(self, ctx):
-        """Starts an active team search"""
-        guild = ctx.guild
-        username = ctx.message.author.name
-        username = username + "'s Projects"
-        category = get(ctx.guild.categories, name=username)
-        if category is None:
-            embed = discord.Embed(title="Whoops!", description="You need to have an active project before starting a team search!", color=discord.Color.red())
-            await ctx.send(embed=embed)
-        else:
-            embed = discord.Embed(title="Starting a search", description=f"Ready to start searching? Here's how\n"
-                                                    f"to start an active search...\n"
-                                                    f"\n`-search [Role]`\n"
-                                                    f"\n`[Role]` **The role you're looking for**"
-                                                    f"\nValid roles are developer, designer,\ncomposer, and tester.\n"
-                                                    f"\n**Remember** Set a description before\nstarting an active search with `-desc`\nso people know what the project is!"
-                                                    ,color=discord.Color.blue())
-            await ctx.send(embed=embed)
-
     # Command "-finish [Name]", can only be used by users with the role "Developer"
-    @commands.has_role("Developer")
+    @commands.has_role("Verified Developer")
     @commands.command()
     async def finish(self, ctx, project):
         """Finishes a project"""
@@ -114,8 +92,8 @@ class Developer(commands.Cog, name="Developer"):
         ############## CONFIGURATION ##############
         ###########################################
         # You can change these for your own project
-        CONFIRMATION_WORD = "confirm" 
-        CONFIRMATION_PROMPT = True 
+        CONFIRMATION_WORD = "confirm"
+        CONFIRMATION_PROMPT = True
         PROJECT_DELETE_COUNTDOWN = True
         COUNTDOWN_TIME = 60
         ###########################################
@@ -144,7 +122,7 @@ class Developer(commands.Cog, name="Developer"):
                         embed = discord.Embed(title="Confirmation", description="Please type `confirm` to finish the project.\n\n**What this does:**\n\t- Deletes the project in your category\n\t- Adds project to completion board", color=discord.Color.blue())
                         await ctx.send(embed=embed)
                         msg = await self.bot.wait_for('message', check=check)
-                        if msg.content.lower() == CONFIRMATION_WORD: 
+                        if msg.content.lower() == CONFIRMATION_WORD:
                             confirmation_passed = True
                         else:
                             embed = discord.Embed(title="Confirmation failed!", description="You did not confirm correctly!", color=discord.Color.red())
@@ -178,6 +156,62 @@ class Developer(commands.Cog, name="Developer"):
             if found is False:
                 embed = discord.Embed(title="Whoops!", description="You don't have a project with that name!", color=discord.Color.red())
                 await ctx.send(embed=embed)
-        
+
+    @commands.has_role("Verified Developer")
+    @commands.command()
+    async def desc(self, ctx, name, *, desc):
+        """Sets the project description"""
+        guild = ctx.guild
+        username = ctx.message.author.name
+        username = username + "'s Projects"
+        category = get(ctx.guild.categories, name=username)
+        if category is None:
+            embed = discord.Embed(title="Whoops!", description="You need to have an active project before setting a description!", color=discord.Color.red())
+            await ctx.send(embed=embed)
+
+    @commands.has_role("Verified Developer")
+    @commands.command()
+    async def toggle(self, ctx):
+        target_found = False
+        with open("opt_out_list.txt", "r+") as f:
+            d = f.readlines()
+            print(d)
+            f.seek(0)
+            for i in d:
+                if i != ctx.author.display_name:
+                    f.write(i)
+                else:
+                    target_found = True
+            f.truncate()
+        f.close()
+        if target_found is True:
+            embed = discord.Embed(title="Consider it done!", description="You can now receive invites to projects!", color=discord.Color.blue())
+            await ctx.send(embed=embed)
+        else:
+            f = open("opt_out_list.txt", "a")
+            f.write(ctx.author.display_name,"\n")
+            f.close()
+
+    @commands.has_role("Verified Developer")
+    @commands.command()
+    async def search(self, ctx):
+        """Starts an active team search"""
+        guild = ctx.guild
+        username = ctx.message.author.name
+        username = username + "'s Projects"
+        category = get(ctx.guild.categories, name=username)
+        if category is None:
+            embed = discord.Embed(title="Whoops!", description="You need to have an active project before starting a team search!", color=discord.Color.red())
+            await ctx.send(embed=embed)
+        else:
+            embed = discord.Embed(title="Starting a search", description=f"Ready to start searching? Here's how\n"
+                                                    f"to start an active search...\n"
+                                                    f"\n`-search [Role]`\n"
+                                                    f"\n`[Role]` **The role you're looking for**"
+                                                    f"\nValid roles are developer, designer,\ncomposer, and tester.\n"
+                                                    f"\n**Remember** Set a description before\nstarting an active search with `-desc`\nso people know what the project is!"
+                                                    ,color=discord.Color.blue())
+            await ctx.send(embed=embed)
+
 def setup(bot):
     bot.add_cog(Developer(bot))
