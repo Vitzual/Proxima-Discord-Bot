@@ -119,7 +119,7 @@ class Developer(commands.Cog, name="Developer"):
                     # Prompts user with confirmation if enabled
                     if CONFIRMATION_PROMPT is True:
                         confirmation_passed = False
-                        embed = discord.Embed(title="Confirmation", description="Please type `confirm` to finish the project.\n\n**What this does:**\n\t- Deletes the project in your category\n\t- Adds project to completion board", color=discord.Color.blue())
+                        embed = discord.Embed(title="Confirmation", description=f"Please type `{CONFIRMATION_WORD}` to finish the project.\n\n**What this does:**\n\t- Deletes the project in your category\n\t- Adds project to completion board", color=discord.Color.blue())
                         await ctx.send(embed=embed)
                         msg = await self.bot.wait_for('message', check=check)
                         if msg.content.lower() == CONFIRMATION_WORD:
@@ -160,7 +160,7 @@ class Developer(commands.Cog, name="Developer"):
     @commands.has_role("Verified Developer")
     @commands.command()
     async def desc(self, ctx, name, *, desc):
-        """Sets the project description"""
+        """This feature is still in development"""
         guild = ctx.guild
         username = ctx.message.author.name
         username = username + "'s Projects"
@@ -172,30 +172,13 @@ class Developer(commands.Cog, name="Developer"):
     @commands.has_role("Verified Developer")
     @commands.command()
     async def toggle(self, ctx):
+        """This feature is still in development"""
         target_found = False
-        with open("opt_out_list.txt", "r+") as f:
-            d = f.readlines()
-            print(d)
-            f.seek(0)
-            for i in d:
-                if i != ctx.author.display_name:
-                    f.write(i)
-                else:
-                    target_found = True
-            f.truncate()
-        f.close()
-        if target_found is True:
-            embed = discord.Embed(title="Consider it done!", description="You can now receive invites to projects!", color=discord.Color.blue())
-            await ctx.send(embed=embed)
-        else:
-            f = open("opt_out_list.txt", "a")
-            f.write(ctx.author.display_name,"\n")
-            f.close()
 
     @commands.has_role("Verified Developer")
     @commands.command()
     async def search(self, ctx):
-        """Starts an active team search"""
+        """This feature is still in development"""
         guild = ctx.guild
         username = ctx.message.author.name
         username = username + "'s Projects"
