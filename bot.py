@@ -46,12 +46,14 @@ if __name__ == "__main__":  # When script is loaded, this will run
 # Welcome event
 @bot.event
 async def on_member_join(member):
-    role = get(member.server.roles, name='Community')
-    join_channel = client.get_channel(713979112213053442)
+    await member.add_roles(get(member.guild.roles, name="Community"))
+    category = get(member.guild.categories, name="Proxima Overview")
+    for scan in category.channels:
+        if scan.name == "welcome":
+            join_channel = scan
     server_embed = discord.Embed(title=f"{member.display_name} has joined the discord!",
-                                 description=f"Welcome {member.mention} to Proxima Studios! ",
+                                 description=f"Welcome {member.mention} to Proxima Studios!\n\n**Getting started:**\n- Talk with devs from different projects\n- Get support for numerous projects\n- Join the team! Use `-info` for more info",
                                  color=discord.Color.blue())
-    await member.add_roles(role)
     await join_channel.send(embed=server_embed)
 
 
