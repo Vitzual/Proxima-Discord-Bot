@@ -25,6 +25,11 @@ class Info(commands.Cog, name="Info"):
         embed = discord.Embed(title="Bot code", url="https://github.com/Vitzual/proxima-bot", description="You can check out my code, it's open source!", color=discord.Color.blue())
         await ctx.send(embed=embed)
 
+    @commands.command()
+    async def info(self, ctx):
+        """Informative command"""
+        embed = discord.Embed(title="Proxima Information", description=f"Hey there! If you're new, here's some valuable\ninfo to help you get started with Proxima!\n\n**What you can do:**\n- Talk with devs from different projects.\n- Get support for numerous projects.\n- Become a part of the team!\n\n**Joining the team:**\n- Are you a developer, designer, or composer?\n- Type `-website` and click on Join Us.\n\n**Start new projects:**\n- Start a project and find your team.\n- Get connected with experienced users.\n- Upload your project to the marketplace.\n- Get connected with your audience!", color=discord.Color.blue())
+        await ctx.send(embed=embed)
 
 def setup(bot):
     bot.add_cog(Info(bot))

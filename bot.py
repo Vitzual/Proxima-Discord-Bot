@@ -16,7 +16,7 @@ print("Import successful!")
 description = '''Proxima Studios bot, by Vitzual'''
 bot = commands.Bot(command_prefix='-', description=description)
 TOKEN = "HIDDEN"  # You can replace this with your own bot token, but remove it before making a commit
-startup_extensions = ["Cog.admin", "Cog.developer", "Cog.help", "Cog.math", "Cog.info"]
+startup_extensions = ["Cog.developer", "Cog.info", "Cog.help", "Cog.admin", "Cog.reload"]
 
 # Sync with client
 print("Syncing with client ID...")
@@ -42,16 +42,28 @@ if __name__ == "__main__":  # When script is loaded, this will run
             exc = '{}: {}'.format(type(e).__name__, e)
             print('Failed to load extension {}\n{}'.format(extension, exc))  # Failed to load cog, with error
 
-
 # Welcome event
 @bot.event
 async def on_member_join(member):
-    role = get(member.server.roles, name='Community')
-    join_channel = client.get_channel(713979112213053442)
-    server_embed = discord.Embed(title=f"{member.display_name} has joined the discord!",
-                                 description=f"Welcome {member.mention} to Proxima Studios! ",
+
+    ###########################################
+    ############## CONFIGURATION ##############
+    ###########################################
+    WELCOME_MESSAGE = f"{member.display_name} has joined the discord!"
+    WELCOME_DESCRIPTION = f"Welcome {member.mention} to Proxima Studios!\n\n**Getting started:**\n- Talk with devs from different projects\n- Get support for numerous projects\n- Join the team! Use `-info` for more info"
+    DEFAULT_ROLE = "Community"
+    WELCOME_CHANNEL_CATEGORY = "Proxima Overview"
+    WELCOME_CHANNEL_NAME = "welcome"
+    ###########################################
+
+    await member.add_roles(get(member.guild.roles, name=DEFAULT_ROLE))
+    category = get(member.guild.categories, name=WELCOME_CHANNEL_CATEGORY)
+    for scan in category.channels:
+        if scan.name == WELCOME_CHANNEL_NAME:
+            join_channel = scan
+    server_embed = discord.Embed(title=WELCOME_MESSAGE,
+                                 description=WELCOME_DESCRIPTION,
                                  color=discord.Color.blue())
-    await member.add_roles(role)
     await join_channel.send(embed=server_embed)
 
 
@@ -68,83 +80,29 @@ async def on_command_error(ctx, error):
     if isinstance(error, commands.CommandNotFound):
         return
 
+    # Argument missing error
     if isinstance(error, commands.MissingRequiredArgument):
-        embed = discord.Embed(title=f"{ctx.command} error",
-                              description=f"You forgot to all the variables! Check what you need with "
-                                          f"`{bot.command_prefix}help {ctx.command.cog_name}`",
+        embed = discord.Embed(title=f"Command error",
+                              description=f"Oops! Looks like you forgot something.\n**Error:** {error}",
                               color=discord.Color.red())
-        embed.set_footer(text=f"{error}")
         await ctx.send(embed=embed)
         return
 
-    if isinstance(error, commands.BotMissingPermissions):
-        missing = [perm.replace('_', ' ').replace('guild', 'server').title() for perm in error.missing_perms]
-        if len(missing) > 2:
-            fmt = '{}, and {}'.format("**, **".join(missing[:-1]), missing[-1])
-        else:
-            fmt = ' and '.join(missing)
-        _message = 'I need the **{}** permission(s) to run this command.'.format(fmt)
-        embed = discord.Embed(title=f"{ctx.command} error",
-                              description='I need the **{}** permission(s) to run this command.'.format(fmt),
-                              color=discord.Color.red())
-        embed.set_footer(text=f"{error}")
-        await ctx.send(embed=embed)
-        return
-
-    if isinstance(error, commands.DisabledCommand):
-        embed = discord.Embed(title=f"{ctx.command} error",
-                              description="This command has been disabled",
-                              color=discord.Color.red())
-        embed.set_footer(text=f"{error}")
-        await ctx.send(embed=embed)
-        return
-
+    # Command cooldown error
     if isinstance(error, commands.CommandOnCooldown):
-        embed = discord.Embed(title=f"{ctx.command} error",
-                              description=f"This command is on cooldown, please try again in "
-                                          f"{format(math.ceil(error.retry_after))}s",
+        embed = discord.Embed(title=f"Cooldown error",
+                              description=f"Oops! Looks like that command is on cooldown.\n**Time left:** {format(math.ceil(error.retry_after))}s",
                               color=discord.Color.red())
-        embed.set_footer(text=f"{error}")
         await ctx.send(embed=embed)
         return
 
-    if isinstance(error, commands.MissingPermissions):
-        missing = [perm.replace('_', ' ').replace('guild', 'server').title() for perm in error.missing_perms]
-        if len(missing) > 2:
-            fmt = '{}, and {}'.format("**, **".join(missing[:-1]), missing[-1])
-        else:
-            fmt = ' and '.join(missing)
-        _message = 'You need the **{}** permission(s) to use this command.'.format(fmt)
-        embed = discord.Embed(title=f"{ctx.command} error",
-                              description=f"{_message}",
-                              color=discord.Color.red())
-        embed.set_footer(text=f"{error}")
-        await ctx.send(embed=embed)
-        return
-
-    if isinstance(error, commands.NoPrivateMessage):
-        try:
-            embed = discord.Embed(title=f"{ctx.command} error",
-                                  description="This command cannot be sued in direct messages",
-                                  color=discord.Color.red())
-            embed.set_footer(text=f"{error}")
-            await ctx.author.send(embed=embed)
-        except discord.Forbidden:
-            pass
-        return
-
+    # Lacking role error
     if isinstance(error, commands.CheckFailure):
-        embed = discord.Embed(title=f"{ctx.command} error",
-                              description=f"You do not have permission to use this command",
+        embed = discord.Embed(title=f"Permission error",
+                              description=f"{error}",
                               color=discord.Color.red())
-        embed.set_footer(text=f"{error}")
         await ctx.send(embed=embed)
         return
-
-    # ignore all other exception types, but print them to stderr
-    print('Ignoring exception in command {}:'.format(ctx.command), file=sys.stderr)
-
-    traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
 
 
 # Push bot online
