@@ -25,15 +25,23 @@ class Developer(commands.Cog, name="Developer"):
         }
         username = username + "'s Projects"
         category = get(ctx.guild.categories, name=username)
+        valid_name = True
         if category is not None and len(category.channels) >= 3:
             embed = discord.Embed(title="Slow down there cowboy!", description="You can only have 3 active projects at a time!", color=discord.Color.red())
             await ctx.send(embed=embed)
+        elif category is not None:
+            for scan in category.channels:
+                if scan.name == name:
+                    embed = discord.Embed(title="Whoops!", description="You already have a project with that name!", color=discord.Color.red())
+                    await ctx.send(embed=embed)
+                    valid_name = False
         else:
             blacklist_words = ["fuck", "shit", "cunt", "nigger", "niger", "niqqa", "bitch", "pussy", "penis", "dick", "boobs", "tits", "vagina", "ass", "retard"]
             if name in blacklist_words:
                 embed = discord.Embed(title="Woah there!", description="Your project contained profanity!\n\n**Reminder:**\n- No projects with vulgar names\n- Projects must be child friendly", color=discord.Color.red())
                 await ctx.send(embed=embed)
-            else:
+                valid_name = False
+            if valid_name is True:
                 if category is None:
                     await ctx.guild.create_category(username)
                 category = get(ctx.guild.categories, name=username)
@@ -96,7 +104,7 @@ class Developer(commands.Cog, name="Developer"):
                     await ctx.send(embed=embed)
                     msg = await self.bot.wait_for('message', check=check)
                     if msg.content.lower() == "confirm": 
-                        embed = discord.Embed(title="Project complete!", description="Congratulations on finishing your project!\n\n**Now what?**\n\t- Upload to the marketplace\n\t- Share it with others\n\t- Get engaged with your audience!", color=discord.Color.blue())
+                        embed = discord.Embed(title=":confetti_ball: Project complete! :confetti_ball:", description="Congratulations on finishing your project!\n\n**Now what?**\n\t- Upload to the marketplace\n\t- Share it with others\n\t- Get engaged with your audience!", color=discord.Color.blue())
                         await ctx.send(embed=embed)
                         embed = discord.Embed(title="Warning!", description="This channel will be deleted in 1 minute!", color=discord.Color.red())
                         await channel.send(embed=embed)
