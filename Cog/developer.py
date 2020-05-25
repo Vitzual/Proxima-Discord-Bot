@@ -26,11 +26,7 @@ class Developer(commands.Cog, name="Developer"):
         MAX_CHANNELS_CHECK = True
         DUPLICATE_NAME_CHECK = True
         PROFANITY_CHECK = True
-        BLACKLIST_WORDS = ["fuck", "shit", "cunt", 
-                        "nigger", "niger", "niqqa", 
-                        "bitch", "pussy", "penis", 
-                        "dick", "boobs", "tits", 
-                        "vagina", "ass", "retard"]
+        BLACKLIST_WORDS = ["example1","example2"]
         ###########################################
 
         # Grabs guild, member, username, and admin role and then sets permissions for new project channels
