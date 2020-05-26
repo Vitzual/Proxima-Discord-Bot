@@ -36,6 +36,8 @@ class Developer(commands.Cog, name="Developer"):
         admin_role = get(guild.roles, name=ADMIN_ROLE)
         category = get(ctx.guild.categories, name=username)
 
+        print(name)
+
         if COMMAND_ENABLED is False:
             discord.Embed(title="Command disabled", description="Looks like this command is disabled!", color=discord.Color.red())
             await ctx.send(embed=embed)
@@ -47,13 +49,11 @@ class Developer(commands.Cog, name="Developer"):
             return
 
         if DUPLICATE_NAME_CHECK and category is not None:
-            category = get(ctx.guild.categories, name=username)
             for scan in category.channels:
                 if scan.name == name:
                     embed = discord.Embed(title="Whoops!", description="You already have a project with that name!", color=discord.Color.red())
                     await ctx.send(embed=embed)
-                    valid = False
-            return
+                    return
 
         if BLACKLIST_FILTER and name.lower in BLACKLIST_WORDS:
             embed = discord.Embed(title="Woah there!", description="Your project contained profanity!\n\n**Reminder:**\n- No projects with vulgar names\n- Projects must be child friendly", color=discord.Color.red())
@@ -68,6 +68,7 @@ class Developer(commands.Cog, name="Developer"):
             member: discord.PermissionOverwrite(read_messages=True, send_messages=True, read_message_history=True),
             admin_role: discord.PermissionOverwrite(read_messages=True)
         }
+
         if category is None:
             await ctx.guild.create_category(username)
             category = get(ctx.guild.categories, name=username)
@@ -132,13 +133,13 @@ class Developer(commands.Cog, name="Developer"):
                         embed = discord.Embed(title="Confirmation", description=f"Please type `{CONFIRMATION_WORD}` to finish the project.\n\n**What this does:**\n\t- Deletes the project in your category\n\t- Adds project to completion board", color=discord.Color.blue())
                         await ctx.send(embed=embed)
                         msg = await self.bot.wait_for('message', check=check)
-                        if msg.content.lower() == CONFIRMATION_WORD:
-                            confirmation_passed = True
-                        else:
+                        if msg.content.lower() != CONFIRMATION_WORD:
                             embed = discord.Embed(title="Confirmation failed!", description="You did not confirm correctly!", color=discord.Color.red())
                             await ctx.send(embed=embed)
+                            return
+                    embed = discord.Embed(title=":confetti_ball: Project complete! :confetti_ball:", description="Congratulations on finishing your project!\n\n**Now what?**\n\t- Upload to the marketplace\n\t- Share it with others\n\t- Get engaged with your audience!", color=discord.Color.blue())
+                    await ctx.send(embed=embed)
                     if PROJECT_DELETE_COUNTDOWN is True:
-                        await ctx.send(embed=embed)
                         embed = discord.Embed(title="Warning!", description=f"This channel will be deleted in {COUNTDOWN_TIME} seconds!", color=discord.Color.red())
                         await channel.send(embed=embed)
                         await asyncio.sleep(COUNTDOWN_TIME-30)
@@ -151,13 +152,10 @@ class Developer(commands.Cog, name="Developer"):
                         embed = discord.Embed(title="Warning!", description="This channel will be deleted in 5 seconds!", color=discord.Color.red())
                         await channel.send(embed=embed)
                         await asyncio.sleep(5)
-                    if confirmation_passed is True:
-                        embed = discord.Embed(title=":confetti_ball: Project complete! :confetti_ball:", description="Congratulations on finishing your project!\n\n**Now what?**\n\t- Upload to the marketplace\n\t- Share it with others\n\t- Get engaged with your audience!", color=discord.Color.blue())
-                        await ctx.send(embed=embed)
-                        category = get(ctx.guild.categories, name=username)
-                        await channel.delete()
-                        if len(category.channels) == 1:
-                            await category.delete()
+                    category = get(ctx.guild.categories, name=username)
+                    await channel.delete()
+                    if len(category.channels) == 1:
+                        await category.delete()
             if found is False:
                 embed = discord.Embed(title="Whoops!", description="You don't have a project with that name!", color=discord.Color.red())
                 await ctx.send(embed=embed)
