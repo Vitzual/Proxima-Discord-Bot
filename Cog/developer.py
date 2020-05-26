@@ -266,8 +266,7 @@ class Developer(commands.Cog, name="Developer"):
     async def search(self, ctx):
         """This feature is still in development"""
         guild = ctx.guild
-        username = ctx.message.author.name
-        username = username + "'s Projects"
+        username = ctx.message.author.name + "'s Projects"
         category = get(ctx.guild.categories, name=username)
         if category is None:
             embed = discord.Embed(title="Whoops!",
@@ -280,9 +279,48 @@ class Developer(commands.Cog, name="Developer"):
                                                                          f"\n`-search [Role]`\n"
                                                                          f"\n`[Role]` **The role you're looking for**"
                                                                          f"\nValid roles are developer, designer,\ncomposer, and tester.\n"
-                                                                         f"\n**Remember** Set a description before\nstarting an active search with `-desc`\nso people know what the project is!"
+                                                                         f"\n**Remember** Set a description before\nstarting an active search with `-desc`"
+                                                                         f"\nso people know what the project is!"
                                   , color=discord.Color.blue())
             await ctx.send(embed=embed)
+
+    @commands.has_role("Verified Developer")
+    @commands.command()
+    async def invite(self, ctx, member: discord.Member):
+        """This feature is still in development"""
+        found = False
+        channel = ""
+        def check(m):
+            return m.author == ctx.author
+        username = ctx.message.author.name + "'s Projects"
+        category = get(ctx.guild.categories, name=username)
+        if category is None:
+            embed = discord.Embed(title="Whoops!", description="You need to have an active project before inviting someone!", color=discord.Color.red())
+            await ctx.send(embed=embed)
+            return
+        if len(category.channels) == 1:
+            for scan in category.channels:
+                channel = scan.name
+        if len(category.channels) > 1:
+            embed = discord.Embed(title="Select project", description=f"**You have multiple projects open!**\nPlease specify which project you want to use\n\n*Reply to this message with the project name*", color=discord.Color.blue())
+            await ctx.send(embed=embed)
+            msg = await self.bot.wait_for('message', check=check)
+            for scan in category.channels:
+                if scan.name == msg.content:
+                    found = True
+                    channel = msg.content
+            if found is False:
+                embed = discord.Embed(title="Whoops!", description="You don't have a project with that name!", color=discord.Color.red())
+                await ctx.send(embed=embed)
+                return
+        # ignore_list = get(ctx.message.server.roles, name="Proxima Team")
+        # ignore_amount = len(scan.members) - len(ignore_list.members)
+        embed = discord.Embed(title="Exciting news!", description=f"**You've been invited!**\nBelow you'll find the project details\n\n**Project:** {scan.name.capitalize()}\n**Owner:** {ctx.author.name}\n**Members:** {len(scan.members)}\n**Description:** {scan.topic}", color=discord.Color.blue())
+        await member.send(embed=embed)
+        #await member.add_reaction(":greenCheckmark:558322116685070378")
+        #await member.add_reaction(":redCross:423541694600970243")
+        embed = discord.Embed(title="Consider it done!", description=f"Invite was sent to {member.name} successfully!", color=discord.Color.blue())
+        await ctx.send(embed=embed)
 
 def setup(bot):
     bot.add_cog(Developer(bot))
