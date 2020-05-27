@@ -288,10 +288,10 @@ class Developer(commands.Cog, name="Developer"):
     @commands.command()
     async def invite(self, ctx, member: discord.Member):
         """This feature is still in development"""
-        found = False
-        channel = ""
         def check(m):
             return m.author == ctx.author
+        found = False
+        channel = ""
         username = ctx.message.author.name + "'s Projects"
         category = get(ctx.guild.categories, name=username)
         if category is None:
@@ -300,27 +300,43 @@ class Developer(commands.Cog, name="Developer"):
             return
         if len(category.channels) == 1:
             for scan in category.channels:
-                channel = scan.name
+                channel = scan
         if len(category.channels) > 1:
             embed = discord.Embed(title="Select project", description=f"**You have multiple projects open!**\nPlease specify which project you want to use\n\n*Reply to this message with the project name*", color=discord.Color.blue())
             await ctx.send(embed=embed)
-            msg = await self.bot.wait_for('message', check=check)
+            msg = await self.bot.wait_for('message', timeout=3600.0, check=check)
             for scan in category.channels:
                 if scan.name == msg.content:
                     found = True
-                    channel = msg.content
+                    channel = scan
             if found is False:
                 embed = discord.Embed(title="Whoops!", description="You don't have a project with that name!", color=discord.Color.red())
                 await ctx.send(embed=embed)
                 return
-        # ignore_list = get(ctx.message.server.roles, name="Proxima Team")
-        # ignore_amount = len(scan.members) - len(ignore_list.members)
-        embed = discord.Embed(title="Exciting news!", description=f"**You've been invited!**\nBelow you'll find the project details\n\n**Project:** {scan.name.capitalize()}\n**Owner:** {ctx.author.name}\n**Members:** {len(scan.members)}\n**Description:** {scan.topic}", color=discord.Color.blue())
-        await member.send(embed=embed)
-        #await member.add_reaction(":greenCheckmark:558322116685070378")
-        #await member.add_reaction(":redCross:423541694600970243")
-        embed = discord.Embed(title="Consider it done!", description=f"Invite was sent to {member.name} successfully!", color=discord.Color.blue())
+        embed = discord.Embed(title="Exciting news!", description=f"**You've been invited!**\nBelow you'll find the project details\n\n**Project:** {scan.name.capitalize()}\n**Owner:** {ctx.author.name}\n**Members:** {len(scan.members)}\n**Description:** {scan.topic}\n\n*You have 1 hour to accept this invite*", color=discord.Color.blue())
+        msg = await member.send(embed=embed)
+        await msg.add_reaction('\N{THUMBS UP SIGN}')
+        await msg.add_reaction('\N{THUMBS DOWN SIGN}')
+        def dmloc(reaction, user):
+            return user.id == member.id
+        embed = discord.Embed(title="Consider it done!", description=f"Invite was sent to {member.name} successfully!\n\n*They have 1 hour to accept it*", color=discord.Color.blue())
         await ctx.send(embed=embed)
+        response, username = await self.bot.wait_for('reaction_add', timeout=60.0, check=dmloc)
+        if response.emoji == '\N{THUMBS UP SIGN}':
+            try:
+                embed = discord.Embed(title=f"{member.name} accepted your invite!", description=f"Welcome to the project {channel.name.capitalize()} {member.mention}!", color=discord.Color.blue())
+                await channel.send(embed=embed)
+                overwrite = discord.PermissionOverwrite()
+                overwrite.send_messages = True
+                overwrite.read_messages = True
+                overwrite.read_message_history = True
+                await channel.set_permissions(member, overwrite=overwrite)
+            except Exception as ex:
+                embed = discord.Embed(title=f"Invite error", description=f"{ex}", color=discord.Color.red())
+                await channel.send(embed=embed)
+        else:
+            embed = discord.Embed(title=f"{member.name} rejected your invite!", description="Talk with users before inviting them!", color=discord.Color.red())
+            await channel.send(embed=embed)
 
 def setup(bot):
     bot.add_cog(Developer(bot))
