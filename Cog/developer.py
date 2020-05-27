@@ -443,5 +443,47 @@ class Developer(commands.Cog, name="Developer"):
                                       color=discord.Color.blue())
                 await channel.send(embed=embed)
 
+    @commands.has_role("Verified Developer")
+    @commands.command()
+    async def leave(self, ctx, project: discord.TextChannel):
+        """Invite people to your project"""
+
+        ###########################################
+        ############## CONFIGURATION ##############
+        ###########################################
+        # You can change these for your own project
+        COMMAND_ENABLED = True
+        ###########################################
+
+        if COMMAND_ENABLED is False:
+            embed = discord.Embed(title="Command disabled", description="Looks like this command is disabled!",
+                                  color=discord.Color.red())
+            await ctx.send(embed=embed)
+            return
+
+        if "Projects" not in project.category.name:
+            embed = discord.Embed(title="Project not found!",
+                                  description="A project with that name could not be found!", color=discord.Color.red())
+            await ctx.send(embed=embed)
+            return
+
+        for scan in project.members:
+            if scan.id == ctx.author.id:
+                overwrite = discord.PermissionOverwrite()
+                overwrite.send_messages = False
+                overwrite.read_messages = False
+                overwrite.read_message_history = False
+                await project.set_permissions(ctx.author, overwrite=overwrite)
+                embed = discord.Embed(title=f"{ctx.author.name} left!", color=discord.Color.red())
+                msg = await project.send(embed=embed)
+                if ctx.channel.id == project.id:
+                    embed = discord.Embed(title="Project left!", description=f"You left the project {project}!",
+                                          color=discord.Color.red())
+                    msg = await ctx.author.send(embed=embed)
+                else:
+                    embed = discord.Embed(title="Project left!", description=f"You left the project {project}!",
+                                          color=discord.Color.blue())
+                    msg = await ctx.send(embed=embed)
+
 def setup(bot):
     bot.add_cog(Developer(bot))
