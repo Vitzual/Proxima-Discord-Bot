@@ -462,9 +462,6 @@ class Developer(commands.Cog, name="Developer"):
             return
 
         if "Projects" not in project.category.name:
-            embed = discord.Embed(title="Project not found!",
-                                  description="A project with that name could not be found!", color=discord.Color.red())
-            await ctx.send(embed=embed)
             return
 
         for scan in project.members:
