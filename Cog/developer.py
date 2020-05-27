@@ -503,5 +503,63 @@ class Developer(commands.Cog, name="Developer"):
                               color=discord.Color.red())
         msg = await ctx.send(embed=embed)
 
+    @commands.has_role("Verified Developer")
+    @commands.command()
+    async def kick(self, ctx, member: discord.Member, *, reason: str):
+        """Kick someone from your project"""
+
+        ###########################################
+        ############## CONFIGURATION ##############
+        ###########################################
+        # You can change these for your own project
+        COMMAND_ENABLED = True
+        SELF_CHECK = True
+        VALID_USER_CHECK = True
+        SERVER_BOT_CHECK = True
+        ADMIN_CHECK = True
+        ADMIN_ROLE = "Verified Developer"
+        ###########################################
+
+        if COMMAND_ENABLED is False:
+            embed = discord.Embed(title="Command disabled", description="Looks like this command is disabled!", color=discord.Color.red())
+            await ctx.send(embed=embed)
+            return
+
+        if SERVER_BOT_CHECK is True and member.bot is True:
+            embed = discord.Embed(title="Wow... ok...", description="I didn't know you felt that way about me :(", color=discord.Color.red())
+            await ctx.send(embed=embed)
+            return
+
+        if SELF_CHECK is True and ctx.author == member:
+            embed = discord.Embed(title="Uh, *ding dong*, anyone home?", description="You can't kick yourself from your own project", color=discord.Color.red())
+            await ctx.send(embed=embed)
+            return
+
+        if ADMIN_CHECK is True:
+            member_roles = member.roles
+            member_role_names = []
+            for scan in member_roles:
+                if scan.name in ADMIN_ROLE:
+                    embed = discord.Embed(title="Whoops!", description="You can't kick Proxima Staff!", color=discord.Color.red())
+                    await ctx.send(embed=embed)
+                    return
+
+        name = ctx.message.author.name + "'s Projects"
+        category = get(ctx.guild.categories, name=name)
+        for scan in category.channels:
+            if scan.id == ctx.channel.id:
+                overwrite = discord.PermissionOverwrite()
+                overwrite.send_messages = False
+                overwrite.read_messages = False
+                overwrite.read_message_history = False
+                await ctx.channel.set_permissions(member, overwrite=overwrite)
+                embed = discord.Embed(title=f"{member.name} was kicked!", description=f"**Reason:** {reason}", color=discord.Color.red())
+                msg = await ctx.channel.send(embed=embed)
+                embed = discord.Embed(title=f"You were kicked!", description=f"You got kicked from {ctx.channel.name.capitalize()}!\n**Reason:** {reason}", color=discord.Color.red())
+                msg = await member.send(embed=embed)
+                return
+        embed = discord.Embed(title="Whoops!", description="Please execute this command in your project", color=discord.Color.red())
+        msg = await ctx.channel.send(embed=embed) 
+
 def setup(bot):
     bot.add_cog(Developer(bot))
