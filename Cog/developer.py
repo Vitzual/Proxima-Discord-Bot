@@ -417,7 +417,7 @@ class Developer(commands.Cog, name="Developer"):
                 return user.id == member.id
 
             embed = discord.Embed(title="Consider it done!",
-                                  description=f"Invite was sent to {member.name} successfully!\n\n*They have 1 hour to accept it*",
+                                  description=f"**Invite was sent to {member.name} successfully!**\n*They have 1 hour to accept it*",
                                   color=discord.Color.blue())
             await ctx.send(embed=embed)
             response, username = await self.bot.wait_for('reaction_add', timeout=60.0, check=dmloc)
