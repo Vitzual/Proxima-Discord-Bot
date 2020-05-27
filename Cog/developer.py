@@ -13,7 +13,7 @@ class Developer(commands.Cog, name="Developer"):
 
     # Command "-create [Name]"
     @commands.has_role("Verified Developer")
-    @commands.command()
+    @commands.command(aliases=["new", "start"])
     async def create(self, ctx, name):
         """Creates a new project in the discord"""
 
@@ -161,8 +161,8 @@ class Developer(commands.Cog, name="Developer"):
                 await ctx.send(embed=embed)
 
     @commands.has_role("Verified Developer")
-    @commands.command()
-    async def toggle(self, ctx):
+    @commands.command(aliases=["toggle", "toggleinv"])
+    async def toggleinvites(self, ctx):
         """Opt-in or opt-out of receiving invites"""
 
         ###########################################
@@ -220,8 +220,8 @@ class Developer(commands.Cog, name="Developer"):
             return
 
     @commands.has_role("Verified Developer")
-    @commands.command()
-    async def desc(self, ctx, name, *, description: str):
+    @commands.(aliases=["desc"])
+    async def setdesc(self, ctx, name, *, description: str):
         """Changes the description of your project"""
 
         ###########################################
@@ -285,7 +285,7 @@ class Developer(commands.Cog, name="Developer"):
             await ctx.send(embed=embed)
 
     @commands.has_role("Verified Developer")
-    @commands.command()
+    @commands.command(aliases=["inv"])
     # @commands.cooldown(1, 60, commands.BucketType.user)
     async def invite(self, ctx, member: discord.Member):
         """Invite people to your project"""
