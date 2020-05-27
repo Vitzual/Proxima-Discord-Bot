@@ -34,6 +34,22 @@ class Admin(commands.Cog, name="Admin"):
             embed = discord.Embed(title="Messages cleared!", description=f"Wiped {number} messages from this channel", color=discord.Color.blue())
             await ctx.send(embed=embed)
 
+    @commands.has_role("Proxima Team")
+    @commands.command(pass_context=True)
+    async def add(self, ctx, name: discord.Member):
+        """Force adds a user"""
+        for scan in ctx.channel.members:
+            if scan.id == name.id:
+                embed = discord.Embed(title="Error", description=f"{name} is already in this channel", color=discord.Color.red())
+                await ctx.send(embed=embed)
+                return
+        overwrite = discord.PermissionOverwrite()
+        overwrite.send_messages = True
+        overwrite.read_messages = True
+        overwrite.read_message_history = True
+        await ctx.channel.set_permissions(name, overwrite=overwrite)
+        embed = discord.Embed(title="User added", description=f"Force added {name} to channel", color=discord.Color.blue())
+        await ctx.send(embed=embed)
 
 def setup(bot):
     bot.add_cog(Admin(bot))
