@@ -297,6 +297,7 @@ class Developer(commands.Cog, name="Developer"):
         COMMAND_ENABLED = True
         SELF_CHECK = True
         ROLE_CHECK = True
+        ALREADY_JOINED_CHECK = True
         ROLE_NAMES = ["Verified Developer",
                       "Verified Designer",
                       "Verified Composer",
@@ -396,6 +397,14 @@ class Developer(commands.Cog, name="Developer"):
                                       color=discord.Color.red())
                 await ctx.send(embed=embed)
                 return
+
+        if ALREADY_JOINED_CHECK is True:
+            for scan in channel.members:
+                if scan.id == member.id:
+                    embed = discord.Embed(title="Whoops!", description=f"{member.name} is already in your project!", color=discord.Color.red())
+                    await ctx.send(embed=embed)
+                    return
+
         if INVITE_SYSTEM is True:
             embed = discord.Embed(title="Exciting news!",
                                   description=f"**You've been invited!**\nBelow you'll find the project details\n\n**Project:** {scan.name.capitalize()}\n**Owner:** {ctx.author.name}\n**Members:** {len(scan.members)}\n**Description:** {scan.topic}\n\n*You have 1 hour to accept this invite*",
