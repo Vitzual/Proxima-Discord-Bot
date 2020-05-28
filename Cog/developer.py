@@ -243,6 +243,49 @@ class Developer(commands.Cog, name="Developer"):
             return
 
     @commands.has_role("Verified Developer")
+    @commands.command(aliases=["description","d"])
+    async def desc(self, ctx):
+        """Changes the description of your project"""
+
+        ###########################################
+        ############## CONFIGURATION ##############
+        ###########################################
+        # You can change these for your own project
+        COMMAND_ENABLED = True
+        DATABASE_FILE_NAME = "project-list"
+        DATABASE_EXTENSION = ".json" # Dont change!
+        ###########################################
+
+        if COMMAND_ENABLED is False:
+            embed = discord.Embed(title="Command disabled", description="Looks like this command is disabled!", color=discord.Color.red())
+            await ctx.send(embed=embed)
+            return
+
+        if DATABASE_EXTENSION is not ".json":
+            embed = discord.Embed(title="WARNING", description=f"**Invalid database extension set!**\nIt looks like this value was changed.\n\n**Error:** Database must use .json files!\n*Revert this change, and then reload the module.*", color=discord.Color.red())
+            await ctx.send(embed=embed)
+            return
+
+        database = (DATABASE_FILE_NAME + DATABASE_EXTENSION)
+
+        try:
+            with open(database) as f:
+                data = json.load(f)
+        except Exception as ex:
+            embed = discord.Embed(title="Database Error!",
+                                description=f"**Error:** {ex}",
+                                color=discord.Color.red())
+            await ctx.send(embed=embed)
+        else:
+            for search in data:
+                if search["channelA"] == ctx.channel.id or search["channelB"] == ctx.channel.id:
+                    embed = discord.Embed(description=search["description"], color=discord.Color.blue())
+                    await ctx.send(embed=embed)
+                    return
+            embed = discord.Embed(title="Whoops!", description="Command must be executed in a project", color=discord.Color.red())
+            await ctx.send(embed=embed)
+
+    @commands.has_role("Verified Developer")
     @commands.(aliases=["desc"])
     async def setdesc(self, ctx, name, *, description: str):
         """Changes the description of your project"""
