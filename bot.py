@@ -52,11 +52,15 @@ async def on_member_join(member):
     WELCOME_MESSAGE = f"{member.display_name} has joined the discord!"
     WELCOME_DESCRIPTION = f"Welcome {member.mention} to Proxima Studios!\n\n**Getting started:**\n- Talk with devs from different projects\n- Get support for numerous projects\n- Join the team! Use `-info` for more info"
     DEFAULT_ROLE = "Community"
+    NOTIFICATION_ROLE = "Notifications"
+    NOTIFICATION_ROLE_ENABLED = True
     WELCOME_CHANNEL_CATEGORY = "Proxima Overview"
     WELCOME_CHANNEL_NAME = "welcome"
     ###########################################
 
     await member.add_roles(get(member.guild.roles, name=DEFAULT_ROLE))
+    if NOTIFICATION_ROLE_ENABLED is True:
+        await member.add_roles(get(member.guild.roles, name=NOTIFICATION_ROLE))
     category = get(member.guild.categories, name=WELCOME_CHANNEL_CATEGORY)
     for scan in category.channels:
         if scan.name == WELCOME_CHANNEL_NAME:
