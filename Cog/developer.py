@@ -583,48 +583,91 @@ class Developer(commands.Cog, name="Developer"):
         SERVER_BOT_CHECK = True
         ADMIN_CHECK = True
         ADMIN_ROLE = "Verified Developer"
+        DATABASE_FILE_NAME = "project-list"
+        DATABASE_EXTENSION = ".json"
         ###########################################
 
-        if COMMAND_ENABLED is False:
-            embed = discord.Embed(title="Command disabled", description="Looks like this command is disabled!", color=discord.Color.red())
-            await ctx.send(embed=embed)
-            return
-
-        if SERVER_BOT_CHECK is True and member.bot is True:
-            embed = discord.Embed(title="Wow... ok...", description="I didn't know you felt that way about me :(", color=discord.Color.red())
-            await ctx.send(embed=embed)
-            return
-
-        if SELF_CHECK is True and ctx.author == member:
-            embed = discord.Embed(title="Uh, *ding dong*, anyone home?", description="You can't kick yourself from your own project", color=discord.Color.red())
-            await ctx.send(embed=embed)
-            return
-
-        if ADMIN_CHECK is True:
-            member_roles = member.roles
-            member_role_names = []
-            for scan in member_roles:
-                if scan.name in ADMIN_ROLE:
-                    embed = discord.Embed(title="Whoops!", description="You can't kick Proxima Staff!", color=discord.Color.red())
-                    await ctx.send(embed=embed)
-                    return
-
-        name = ctx.message.author.name + "'s Projects"
-        category = get(ctx.guild.categories, name=name)
-        for scan in category.channels:
-            if scan.id == ctx.channel.id:
-                overwrite = discord.PermissionOverwrite()
-                overwrite.send_messages = False
-                overwrite.read_messages = False
-                overwrite.read_message_history = False
-                await ctx.channel.set_permissions(member, overwrite=overwrite)
-                embed = discord.Embed(title=f"{member.name} was kicked!", description=f"**Reason:** {reason}", color=discord.Color.red())
-                msg = await ctx.channel.send(embed=embed)
-                embed = discord.Embed(title=f"You were kicked!", description=f"You got kicked from {ctx.channel.name.capitalize()}!\n**Reason:** {reason}", color=discord.Color.red())
-                msg = await member.send(embed=embed)
+        try:
+            if COMMAND_ENABLED is False:
+                embed = discord.Embed(title="Command disabled", description="Looks like this command is disabled!",
+                                      color=discord.Color.red())
+                await ctx.send(embed=embed)
                 return
-        embed = discord.Embed(title="Whoops!", description="Please execute this command in your project", color=discord.Color.red())
-        msg = await ctx.channel.send(embed=embed) 
+
+            if DATABASE_EXTENSION is not ".json":
+                embed = discord.Embed(title="WARNING",
+                                      description=f"**Invalid database extension set!**\nIt looks like this value was changed.\n\n**Error:** Database must use .json files!\n*Revert this change, and then reload the module.*",
+                                      color=discord.Color.red())
+                await ctx.send(embed=embed)
+                return
+
+            database = (DATABASE_FILE_NAME + DATABASE_EXTENSION)
+            valid = False
+
+            try:
+                with open(database) as f:
+                    data = json.load(f)
+            except Exception as ex:
+                embed = discord.Embed(title="Database Error!",
+                                      description=f"**Error:** {ex}",
+                                      color=discord.Color.red())
+                await ctx.send(embed=embed)
+            else:
+                for scan in data:
+                    if scan["user_id"] == ctx.author.id:
+                        if scan["channelA"] == ctx.channel.id or scan["channelB"] == ctx.channel.id:
+                            category = get(ctx.guild.categories, id=scan["project_owned"])
+                            perms = category.channels
+                            valid = True
+
+            if valid is False:
+                embed = discord.Embed(title="Whoops!", description="Command must be executed in your project!",
+                                      color=discord.Color.red())
+                msg = await ctx.channel.send(embed=embed)
+                return
+
+            if SERVER_BOT_CHECK is True and member.bot is True:
+                embed = discord.Embed(title="Wow... ok...", description="I didn't know you felt that way about me :(",
+                                      color=discord.Color.red())
+                await ctx.send(embed=embed)
+                return
+
+            if SELF_CHECK is True and ctx.author == member:
+                embed = discord.Embed(title="Uh, *ding dong*, anyone home?",
+                                      description="You can't kick yourself from your own project",
+                                      color=discord.Color.red())
+                await ctx.send(embed=embed)
+                return
+
+            if ADMIN_CHECK is True:
+                member_roles = member.roles
+                member_role_names = []
+                for scan in member_roles:
+                    if scan.name in ADMIN_ROLE:
+                        embed = discord.Embed(title="Whoops!", description="You can't kick Proxima Staff!",
+                                              color=discord.Color.red())
+                        await ctx.send(embed=embed)
+                        return
+
+            overwrite = discord.PermissionOverwrite()
+            overwrite.send_messages = False
+            overwrite.read_messages = False
+            overwrite.read_message_history = False
+            for scan in category.channels:
+                await scan.set_permissions(member, overwrite=overwrite)
+            embed = discord.Embed(title=f"{member.name} was kicked!", description=f"**Reason:** {reason}",
+                                  color=discord.Color.red())
+            msg = await ctx.channel.send(embed=embed)
+            embed = discord.Embed(title=f"You were kicked!",
+                                  description=f"You got kicked from {ctx.author.name}'s project!\n**Reason:** {reason}",
+                                  color=discord.Color.red())
+            msg = await member.send(embed=embed)
+            return
+        except Exception as ex:
+            embed = discord.Embed(title="Database Error!",
+                                  description=f"**Error:** {ex}",
+                                  color=discord.Color.red())
+            await ctx.send(embed=embed)
 
 def setup(bot):
     bot.add_cog(Developer(bot))
