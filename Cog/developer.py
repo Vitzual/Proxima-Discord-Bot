@@ -113,7 +113,7 @@ class Developer(commands.Cog, name="Developer"):
 
     @commands.has_role("Verified Developer")
     @commands.command()
-    async def finish(self, ctx, project):
+    async def finish(self, ctx):
         """Finishes a project"""
 
         ###########################################
@@ -121,10 +121,10 @@ class Developer(commands.Cog, name="Developer"):
         ###########################################
         # You can change these for your own project
         COMMAND_ENABLED = True
-        CONFIRMATION_WORD = "confirm"
-        CONFIRMATION_PROMPT = True
-        PROJECT_DELETE_COUNTDOWN = True
-        COUNTDOWN_TIME = 60
+        CONFIRMATION_WORD = "confirm" 
+        CONFIRMATION_PROMPT = True 
+        DATABASE_FILE_NAME = "project-list"
+        DATABASE_EXTENSION = ".json" # Dont change!
         ###########################################
 
         if COMMAND_ENABLED is False:
@@ -132,58 +132,56 @@ class Developer(commands.Cog, name="Developer"):
             await ctx.send(embed=embed)
             return
 
-        if COUNTDOWN_TIME < 60 and PROJECT_DELETE_COUNTDOWN is True:
-            embed = discord.Embed(title="WARNING", description=f"**Invalid countdown time set!**\nIt looks like this value was changed.\n\n**Time entered:** {COUNTDOWN_TIME} seconds\n**Error:** Value must be greater then 60\n\n*Revert this change, and then reload the module.*", color=discord.Color.red())
+        if DATABASE_EXTENSION is not ".json":
+            embed = discord.Embed(title="WARNING", description=f"**Invalid database extension set!**\nIt looks like this value was changed.\n\n**Error:** Database must use .json files!\n*Revert this change, and then reload the module.*", color=discord.Color.red())
             await ctx.send(embed=embed)
             return
 
-        def check(m):
-            return m.author == ctx.author
-        guild = ctx.guild
-        username = ctx.author.display_name
-        username = username + "'s Projects"
-        category = get(ctx.guild.categories, name=username)
-        found = False
-        confirmation_passed = True
-        if category is None:
-            embed = discord.Embed(title="Whoops!", description="You don't have any active projects!", color=discord.Color.red())
+        database = (DATABASE_FILE_NAME + DATABASE_EXTENSION)
+
+        try:
+            with open(database) as f:
+                data = json.load(f)
+        except Exception as ex:
+            embed = discord.Embed(title="Database Error!",
+                                description=f"**Error:** {ex}",
+                                color=discord.Color.red())
             await ctx.send(embed=embed)
         else:
-            for scan in category.channels:
-                if scan.name == project:
-                    channel = scan
-                    found = True
-                    if CONFIRMATION_PROMPT is True:
-                        confirmation_passed = False
-                        embed = discord.Embed(title="Confirmation", description=f"Please type `{CONFIRMATION_WORD}` to finish the project.\n\n**What this does:**\n\t- Deletes the project in your category\n\t- Adds project to completion board", color=discord.Color.blue())
-                        await ctx.send(embed=embed)
-                        msg = await self.bot.wait_for('message', check=check)
-                        if msg.content.lower() != CONFIRMATION_WORD:
-                            embed = discord.Embed(title="Confirmation failed!", description="You did not confirm correctly!", color=discord.Color.red())
+            def check(m):
+                return m.author == ctx.author
+            i = 0
+            for user in data:
+                if user["user_id"] == ctx.author.id:
+                    try:
+                        projectID = user["project_owned"]
+                    except KeyError:
+                        pass
+                    else:
+                        if CONFIRMATION_PROMPT is True:
+                            embed = discord.Embed(title="Confirmation", description=f"Please type `{CONFIRMATION_WORD}` to finish the project.\n\n**What this does:**\n\t- Deletes the project in discord.\n\t- Adds project to completion board.", color=discord.Color.blue())
                             await ctx.send(embed=embed)
-                            return
-                    embed = discord.Embed(title=":confetti_ball: Project complete! :confetti_ball:", description="Congratulations on finishing your project!\n\n**Now what?**\n\t- Upload to the marketplace\n\t- Share it with others\n\t- Get engaged with your audience!", color=discord.Color.blue())
-                    await ctx.send(embed=embed)
-                    if PROJECT_DELETE_COUNTDOWN is True:
-                        embed = discord.Embed(title="Warning!", description=f"This channel will be deleted in {COUNTDOWN_TIME} seconds!", color=discord.Color.red())
-                        await channel.send(embed=embed)
-                        await asyncio.sleep(COUNTDOWN_TIME-30)
-                        embed = discord.Embed(title="Warning!", description="This channel will be deleted in 30 seconds!", color=discord.Color.red())
-                        await channel.send(embed=embed)
-                        await asyncio.sleep(15)
-                        embed = discord.Embed(title="Warning!", description="This channel will be deleted in 15 seconds!", color=discord.Color.red())
-                        await channel.send(embed=embed)
-                        await asyncio.sleep(10)
-                        embed = discord.Embed(title="Warning!", description="This channel will be deleted in 5 seconds!", color=discord.Color.red())
-                        await channel.send(embed=embed)
-                        await asyncio.sleep(5)
-                    category = get(ctx.guild.categories, name=username)
-                    await channel.delete()
-                    if len(category.channels) == 1:
+                            msg = await self.bot.wait_for('message', check=check)
+                            if msg.content.lower() != CONFIRMATION_WORD: 
+                                embed = discord.Embed(title="Confirmation failed!", description="You did not confirm correctly!", color=discord.Color.red())
+                                await ctx.send(embed=embed)
+                                return
+                        guild = ctx.guild
+                        category = get(guild.categories, id=projectID)
+                        for scan in category.channels:
+                            await scan.delete()
                         await category.delete()
-            if found is False:
-                embed = discord.Embed(title="Whoops!", description="You don't have a project with that name!", color=discord.Color.red())
-                await ctx.send(embed=embed)
+                        del data[i]
+                        with open(database, "w") as f:
+                            json.dump(data, f, indent=2)
+                        embed = discord.Embed(title="Project finished!", description="Project removed from active database.\n*Check your DM's for what to do next!*", color=discord.Color.blue())
+                        await ctx.send(embed=embed)
+                        embed = discord.Embed(title=":confetti_ball: Project complete! :confetti_ball:", description="Congratulations on finishing your project!\n\n**Now what?**\n\t- Upload it to the marketplace.\n\t- Share it with others.\n\t- Get engaged with your audience!", color=discord.Color.blue())
+                        await ctx.author.send(embed=embed)
+                        return
+                i += 1
+            embed = discord.Embed(title="Whoops!", description="You need to own a project first.", color=discord.Color.red())
+            await ctx.send(embed=embed)
 
     @commands.has_role("Verified Developer")
     @commands.command(aliases=["toggle", "toggleinv"])
