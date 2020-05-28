@@ -11,10 +11,9 @@ class Developer(commands.Cog, name="Developer"):
         self.bot = bot
     client = discord.Client()
 
-    # Command "-create [Name]"
     @commands.has_role("Verified Developer")
     @commands.command(aliases=["new", "start"])
-    async def create(self, ctx, name):
+    async def create(self, ctx):
         """Creates a new project in the discord"""
 
         ###########################################
@@ -22,69 +21,95 @@ class Developer(commands.Cog, name="Developer"):
         ###########################################
         # You can change these for your own project
         COMMAND_ENABLED = True
+        DATABASE_FILE_NAME = "project-list"
+        DATABASE_EXTENSION = ".json" # Dont change!
         ADMIN_ROLE = "Proxima Team"
-        MAX_CHANNELS = 3
-        MAX_CHANNELS_CHECK = True
-        DUPLICATE_NAME_CHECK = True
-        BLACKLIST_FILTER = True
-        BLACKLIST_WORDS = ["example1", "example2"]
         ###########################################
-
-        guild = ctx.guild
-        member = ctx.author
-        username = ctx.message.author.name + "'s Projects"
-        admin_role = get(guild.roles, name=ADMIN_ROLE)
-        category = get(ctx.guild.categories, name=username)
-
-        print(name)
 
         if COMMAND_ENABLED is False:
             discord.Embed(title="Command disabled", description="Looks like this command is disabled!", color=discord.Color.red())
             await ctx.send(embed=embed)
             return
 
-        if MAX_CHANNELS_CHECK and category is not None and len(category.channels) >= MAX_CHANNELS:
-            embed = discord.Embed(title="Slow down there cowboy!", description=f"You can only have {MAX_CHANNELS} active projects at a time!", color=discord.Color.red())
+        if DATABASE_EXTENSION is not ".json":
+            embed = discord.Embed(title="WARNING", description=f"**Invalid database extension set!**\nIt looks like this value was changed.\n\n**Error:** Database must use .json files!\n*Revert this change, and then reload the module.*", color=discord.Color.red())
             await ctx.send(embed=embed)
             return
 
-        if DUPLICATE_NAME_CHECK and category is not None:
-            for scan in category.channels:
-                if scan.name == name:
-                    embed = discord.Embed(title="Whoops!", description="You already have a project with that name!", color=discord.Color.red())
-                    await ctx.send(embed=embed)
-                    return
+        database = (DATABASE_FILE_NAME + DATABASE_EXTENSION)
+        user_threshold = 3
 
-        if BLACKLIST_FILTER and name.lower in BLACKLIST_WORDS:
-            embed = discord.Embed(title="Woah there!", description="Your project contained profanity!\n\n**Reminder:**\n- No projects with vulgar names\n- Projects must be child friendly", color=discord.Color.red())
+        try:
+            with open(database) as f:
+                data = json.load(f)
+        except Exception as ex:
+            embed = discord.Embed(title="Database Error!",
+                                description=f"**Error:** {ex}",
+                                color=discord.Color.red())
             await ctx.send(embed=embed)
-            valid = False
-            return
+        else:
+            while user_threshold > 1:
+                user_threshold -= 1
+                i = 0
+                for user in data:
+                    if user["user_id"] == ctx.author.id:
+                        try:
+                            projectID = user["project_owned"]
 
-        # Grabs guild, member, username, and admin role and then sets permissions for new project channels
-        overwrites = {
-            guild.default_role: discord.PermissionOverwrite(read_messages=False),
-            guild.me: discord.PermissionOverwrite(read_messages=True),
-            member: discord.PermissionOverwrite(read_messages=True, send_messages=True, read_message_history=True),
-            admin_role: discord.PermissionOverwrite(read_messages=True)
-        }
-
-        if category is None:
-            await ctx.guild.create_category(username)
-            category = get(ctx.guild.categories, name=username)
-        channel = await guild.create_text_channel(name, overwrites=overwrites, category=category)
-        embed = discord.Embed(title="Success!", description="Your project is ready to go!", color=discord.Color.blue())
-        await ctx.send(embed=embed)
-        print(username,"has created a new project with the name",name)
-        embed = discord.Embed(title="Welcome!", description=f"Hey {ctx.message.author.name}, welcome to your new project! Now\n"
-                                                            f"that you're ready to go, lets find some team\n"
-                                                            f"members and get this thing rolling!\n"
-                                                            f"\n**How to start:** \n"
-                                                            f"\t- Get the word out! Type `-search` to begin.\n"
-                                                            f"\t- Invite people! Type `-inv [name]` to add them.\n"
-                                                            f"\t- Start planning! Every great idea needs a plan.\n"
-                                                            ,color=discord.Color.blue())
-        await channel.send(embed=embed)
+                        except KeyError:
+                            try:
+                                del data[i]
+                                with open(database, "w") as f:
+                                    json.dump(data, f, indent=2)
+                                guild = ctx.guild
+                                admin_role = get(guild.roles, name=ADMIN_ROLE)
+                                overwrites = {
+                                    guild.default_role: discord.PermissionOverwrite(read_messages=False),
+                                    guild.me: discord.PermissionOverwrite(read_messages=True),
+                                    ctx.author: discord.PermissionOverwrite(read_messages=True, send_messages=True, read_message_history=True),
+                                    admin_role: discord.PermissionOverwrite(read_messages=True)
+                                }
+                                project_name = ctx.author.name+"'s Project"
+                                await ctx.guild.create_category(project_name)
+                                category = get(ctx.guild.categories, name=project_name)
+                                await guild.create_text_channel("updates", overwrites=overwrites, category=category)
+                                channel = await guild.create_text_channel("discussion", overwrites=overwrites, category=category)
+                                embed = discord.Embed(title="Success!", description="Your project is ready to go!", color=discord.Color.blue())
+                                await ctx.send(embed=embed)
+                                embed = discord.Embed(title="Welcome!", description=f"Hey {ctx.message.author.name}, welcome to your new project! Now\n"
+                                                                                    f"that you're ready to go, lets find some team\n"
+                                                                                    f"members and get this thing rolling!\n"
+                                                                                    f"\n**How to start:** \n"
+                                                                                    f"\t- Get the word out! Type `-search` to begin.\n"
+                                                                                    f"\t- Invite people! Type `-inv [name]` to add them.\n"
+                                                                                    f"\t- Start planning! Every great idea needs a plan.\n"
+                                                                                    ,color=discord.Color.blue())
+                                await channel.send(embed=embed)
+                                new_project = {
+                                    "user_id": ctx.author.id,
+                                    "project_owned": category.id
+                                }
+                                data.append(new_project)
+                                with open(database, "w") as f:
+                                    json.dump(data, f, indent=2)
+                                return
+                            except Exception as ex:
+                                embed = discord.Embed(title="Database Error!",
+                                                    description=f"**Error:** {ex}",
+                                                    color=discord.Color.red())
+                                await ctx.send(embed=embed)
+                                return
+                        else:
+                            embed = discord.Embed(title="Whoops!", description="You already own a project!", color=discord.Color.red())
+                            await ctx.send(embed=embed)
+                            return
+                    i += 1
+                new_user = {
+                    "user_id": ctx.author.id
+                }
+                data.append(new_user)
+                with open(database, "w") as f:
+                    json.dump(data, f, indent=2)
 
     @commands.has_role("Verified Developer")
     @commands.command()
