@@ -95,5 +95,30 @@ class Community(commands.Cog, name="Community"):
                     msg = await ctx.send(embed=embed)  
                     return
 
+    @commands.command(aliases=["notifs"])
+    async def notifications(self, ctx):
+        """Toggle receiving notifications"""
+
+        ###########################################
+        ############## CONFIGURATION ##############
+        ###########################################
+        # You can change these for your own project
+        COMMAND_ENABLED = True
+        NOTIFICATION_ROLE = "Notifications"
+        ###########################################
+
+        roles = ctx.author.roles
+        for scan in roles:
+            if scan.name == NOTIFICATION_ROLE:
+                await ctx.author.remove_roles(get(ctx.author.guild.roles, name=NOTIFICATION_ROLE))
+                embed = discord.Embed(title="Notifications disabled!", description="You will no longer get pinged.",
+                                        color=discord.Color.red())
+                await ctx.send(embed=embed)
+                return
+        await ctx.author.add_roles(get(ctx.author.guild.roles, name=NOTIFICATION_ROLE))
+        embed = discord.Embed(title="Notifications enabled!", description="You will now get pinged in updates.",
+                                color=discord.Color.blue())
+        await ctx.send(embed=embed)
+
 def setup(bot):
     bot.add_cog(Community(bot))
