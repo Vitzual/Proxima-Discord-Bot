@@ -286,8 +286,8 @@ class Developer(commands.Cog, name="Developer"):
             await ctx.send(embed=embed)
 
     @commands.has_role("Verified Developer")
-    @commands.(aliases=["desc"])
-    async def setdesc(self, ctx, name, *, description: str):
+    @commands.command()
+    async def setdesc(self, ctx, *, description: str):
         """Changes the description of your project"""
 
         ###########################################
@@ -297,34 +297,54 @@ class Developer(commands.Cog, name="Developer"):
         COMMAND_ENABLED = True
         BLACKLIST_FILTER = True
         BLACKLIST_WORDS = ["example1", "example2"]
+        DATABASE_FILE_NAME = "project-list"
+        DATABASE_EXTENSION = ".json" # Dont change!
         ###########################################
 
         if COMMAND_ENABLED is False:
             embed = discord.Embed(title="Command disabled", description="Looks like this command is disabled!", color=discord.Color.red())
             await ctx.send(embed=embed)
             return
-        elif BLACKLIST_FILTER and [a for a in BLACKLIST_WORDS if(a in description)]:
+
+        if BLACKLIST_FILTER and [a for a in BLACKLIST_WORDS if(a in description)]:
             embed = discord.Embed(title="Woah there!", description="Your description contained profanity!\n\n**Reminder:**\n- No descriptions with vulgar names\n- Descriptions must be child friendly", color=discord.Color.red())
             await ctx.send(embed=embed)
             return
-        username = ctx.author.display_name + "'s Projects"
-        category = get(ctx.guild.categories, name=username)
-        found = False
-        if category is None:
-            embed = discord.Embed(title="Whoops!", description="You don't have any active projects!", color=discord.Color.red())
+
+        if DATABASE_EXTENSION is not ".json":
+            embed = discord.Embed(title="WARNING", description=f"**Invalid database extension set!**\nIt looks like this value was changed.\n\n**Error:** Database must use .json files!\n*Revert this change, and then reload the module.*", color=discord.Color.red())
+            await ctx.send(embed=embed)
+            return
+
+        database = (DATABASE_FILE_NAME + DATABASE_EXTENSION)
+
+        try:
+            with open(database) as f:
+                data = json.load(f)
+        except Exception as ex:
+            embed = discord.Embed(title="Database Error!",
+                                description=f"**Error:** {ex}",
+                                color=discord.Color.red())
             await ctx.send(embed=embed)
         else:
-            for scan in category.channels:
-                if scan.name == name:
-                    await scan.edit(topic=description)
-                    scan = scan.name.capitalize()
-                    embed = discord.Embed(title=f"Success!",
-                                        description=f"**{scan}'s description is now:** \n{description}",
-                                        color=discord.Color.blue())
-                    await ctx.send(embed=embed)
-                    found = True
-        if found is False:
-            embed = discord.Embed(title="Whoops!", description="You don't have a project with that name!", color=discord.Color.red())
+            def check(m):
+                return m.author == ctx.author
+            for user in data:
+                if user["user_id"] == ctx.author.id:
+                    try:
+                        projectID = user["project_owned"]
+                    except KeyError:
+                        pass
+                    else:
+                        user["description"] = description
+                        with open(database, "w") as f:
+                            json.dump(data, f, indent=2)
+                        embed = discord.Embed(title=f"Success!",
+                                            description=f"**Project description is now:** \n{description}",
+                                            color=discord.Color.blue())
+                        await ctx.send(embed=embed)
+                        return
+            embed = discord.Embed(title="Whoops!", description="You need to own a project first.", color=discord.Color.red())
             await ctx.send(embed=embed)
 
     @commands.has_role("Verified Developer")
