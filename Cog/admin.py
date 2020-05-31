@@ -70,5 +70,33 @@ class Admin(commands.Cog, name="Admin"):
         embed = discord.Embed(title="Error", description=f"{name} is not in this channel", color=discord.Color.red())
         await ctx.send(embed=embed)
 
+    @commands.has_role("Proxima Team")
+    @commands.command(pass_context=True)
+    async def whois(self, ctx, name: discord.Member):
+        """Dispays all info on a user"""
+        try:
+            guild = ctx.guild
+            frstsc = False
+            a = []
+            b = []
+            for scan in name.roles:
+                if frstsc is True:
+                    a.append(scan.name)
+                else:
+                    frstsc = True
+            a.reverse()
+            for chn in guild.text_channels:
+                if "'s Project" in chn.category.name:
+                    if chn.category.name not in b:
+                        mlist = chn.members
+                        for uid in mlist:
+                            if uid.id == name.id:
+                                b.append(chn.category.name)
+            embed = discord.Embed(title="**Displaying info**", description=f"**ADMIN COMMAND** | Invoked by {ctx.author.name}\nGathering all info on {name}\n\n**Username:** {name.display_name}\n**User ID:** {name.id}\n**Joined:** {name.joined_at}\n**Roles:** {a}\n**Projects:** {b}",
+                                    color=discord.Color.purple())
+            await ctx.send(embed=embed)
+        except Exception as ex:
+            embed = discord.Embed(title="Error", description=f"{ex}", color=discord.Color.red())
+
 def setup(bot):
     bot.add_cog(Admin(bot))
